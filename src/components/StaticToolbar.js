@@ -4,20 +4,17 @@
  * License: MIT
  */
 
-import React, { Component } from "react";
+import React, {Component} from "react";
 import PropTypes from "prop-types";
-import { EditorState, RichUtils } from "draft-js";
+import {EditorState, RichUtils} from "draft-js";
 import classNames from "classnames";
 import ToolbarItem from "./ToolbarItem";
-import { getSelectionCoords } from "../utils";
+import {getSelectionCoords} from "../utils";
 
-export default class Toolbar extends Component {
+export default class StaticToolbar extends Component {
   static defaultProps = {
     shouldDisplayToolbarFn(props, state) {
-      return (
-        (props.editorHasFocus || state.editingEntity) &&
-        !props.editorState.getSelection().isCollapsed()
-      );
+      return true;
     }
   };
   static propTypes = {
@@ -27,7 +24,6 @@ export default class Toolbar extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      show: false,
       editingEntity: null,
       link: "",
       error: null
@@ -54,7 +50,7 @@ export default class Toolbar extends Component {
   }
 
   toggleEntity(entity) {
-    this.setState({ editingEntity: entity });
+    this.setState({editingEntity: entity});
   }
 
   renderButton(item, position) {
@@ -91,7 +87,7 @@ export default class Toolbar extends Component {
         break;
       }
       case "entity": {
-        const { entity = "LINK" } = item;
+        const {entity = "LINK"} = item;
         key = "entity-" + entity;
         toggle = () => this.toggleEntity(entity);
         active = this.hasEntity(entity);
@@ -100,65 +96,16 @@ export default class Toolbar extends Component {
     }
 
     return (
-      <ToolbarItem key={key} active={active} toggle={toggle} item={item} />
+      <ToolbarItem key={key} active={active} toggle={toggle} item={item}/>
     );
   }
 
   setError(errorMsg) {
-    this.setState({ error: errorMsg });
+    this.setState({error: errorMsg});
   }
 
   cancelError() {
-    this.setState({ error: null });
-  }
-
-  setBarPosition() {
-    this.setState(
-      {
-        show: true
-      },
-      () => {
-        const editor = this.props.editor;
-        const toolbar = this.toolbarEl;
-        const selectionCoords = getSelectionCoords(editor, toolbar);
-
-        if (!selectionCoords) {
-          return null;
-        }
-
-        if (
-          (selectionCoords && !this.state.position) ||
-          this.state.position.top !== selectionCoords.offsetTop ||
-          this.state.position.left !== selectionCoords.offsetLeft ||
-          this.state.arrowStyle !== selectionCoords.arrowStyle ||
-          !this.state.show
-        ) {
-          this.setState({
-            position: {
-              top: selectionCoords.offsetTop,
-              left: selectionCoords.offsetLeft
-            },
-            arrowStyle: selectionCoords.arrowStyle
-          });
-        }
-      }
-    );
-  }
-
-  handleSetToolbar() {
-    if (this.props.shouldDisplayToolbarFn(this.props, this.state)) {
-      this.shouldUpdatePos = false;
-      return this.setBarPosition();
-    } else {
-      if (this.state.show) {
-        this.setState({
-          show: false,
-          editingEntity: null,
-          link: "",
-          error: null
-        });
-      }
-    }
+    this.setState({error: null});
   }
 
   componentWillReceiveProps(nextProps) {
@@ -167,12 +114,6 @@ export default class Toolbar extends Component {
 
     if (currentContentState === newContentState) {
       this.shouldUpdatePos = true;
-    }
-  }
-
-  componentDidUpdate() {
-    if (this.shouldUpdatePos) {
-      this.handleSetToolbar();
     }
   }
 
@@ -204,7 +145,7 @@ export default class Toolbar extends Component {
   }
 
   setEntity(entityType, data, mutability = "MUTABLE") {
-    const { editorState } = this.props;
+    const {editorState} = this.props;
     const contentState = editorState.getCurrentContent();
     const contentStateWithEntity = contentState.createEntity(
       entityType,
@@ -226,7 +167,7 @@ export default class Toolbar extends Component {
   }
 
   removeEntity() {
-    const { editorState } = this.props;
+    const {editorState} = this.props;
     const selection = editorState.getSelection();
     if (!selection.isCollapsed()) {
       // toggleLink should be named toggleEntity: https://github.com/facebook/draft-js/issues/737
@@ -246,6 +187,7 @@ export default class Toolbar extends Component {
       }
     );
   }
+
   renderEntityInput(entityType) {
     if (!this.props.entityInputs) {
       console.warn("no entityInputs provided");
@@ -283,6 +225,7 @@ export default class Toolbar extends Component {
       return null;
     }
   }
+
   renderToolList() {
     return (
       <ul className="toolbar__list">
@@ -290,51 +233,39 @@ export default class Toolbar extends Component {
       </ul>
     );
   }
+
   render() {
-    if (
-      this.props.readOnly ||
-      !this.props.shouldDisplayToolbarFn(this.props, this.state)
-    ) {
+    console.log(this.props);
+    if (this.props.readOnly && !this.props.editorHasFocus) {
       return null;
     }
 
-    const toolbarClass = classNames("toolbar", {
-      "toolbar--open": this.state.show,
+    const toolbarClass = classNames("toolbar","static", {
       "toolbar--error": this.state.error
     });
 
     return (
       <div
         className={toolbarClass}
-        style={this.state.position}
       >
-        <div style={{ position: "absolute", bottom: 0 }}>
-          <div
-            className="toolbar__wrapper"
-            ref={el => {
-              this.toolbarEl = el;
-            }}
-            onMouseDown={e => {
-              if (
-                e.target.localName !== "input" &&
-                e.target.localName !== "select"
-              ) {
-                e.preventDefault();
-              }
-            }}
-          >
-            {this.state.editingEntity
-              ? this.renderEntityInput(this.state.editingEntity)
-              : this.renderToolList()}
-            <p className="toolbar__error-msg">{this.state.error}</p>
-            <span
-              className="toolbar__arrow"
-              ref={el => {
-                this.arrowEl = el;
-              }}
-              style={this.state.arrowStyle}
-            />
-          </div>
+        <div
+          className="toolbar__wrapper"
+          ref={el => {
+            this.toolbarEl = el;
+          }}
+          onMouseDown={e => {
+            if (
+              e.target.localName !== "input" &&
+              e.target.localName !== "select"
+            ) {
+              e.preventDefault();
+            }
+          }}
+        >
+          {this.state.editingEntity
+            ? this.renderEntityInput(this.state.editingEntity)
+            : this.renderToolList()}
+          <p className="toolbar__error-msg">{this.state.error}</p>
         </div>
       </div>
     );

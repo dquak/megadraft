@@ -14,6 +14,7 @@ import MegadraftMediaMessage from "./components/MediaMessage";
 import * as MegadraftPlugin from "./components/plugin";
 import Sidebar from "./components/Sidebar";
 import Toolbar from "./components/Toolbar";
+import StaticToolbar from "./components/StaticToolbar";
 import * as utils from "./utils";
 
 const Megadraft = {
@@ -26,6 +27,7 @@ const Megadraft = {
   MegadraftPlugin,
   Sidebar,
   Toolbar,
+  StaticToolbar,
   editorStateFromRaw: utils.editorStateFromRaw,
   editorStateToJSON: utils.editorStateToJSON,
   createTypeStrategy: utils.createTypeStrategy

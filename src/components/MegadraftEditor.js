@@ -6,6 +6,7 @@
 
 // i18n shim! I feel bad for doing this =(
 // https://github.com/megawac/async/blob/d2dd36b4558f483682f3c672630fdcb36a96d4d2/lib/async.js#L16
+// eslint-disable-next-line
 (
   (typeof self === "object" && self.self === self && self) ||
   (typeof global === "object" && global.global === global && global) ||
@@ -33,6 +34,7 @@ import {
 import Immutable from "immutable";
 
 import DefaultToolbar from "./Toolbar";
+import StaticDefaultToolbar from "./StaticToolbar";
 import Sidebar from "./Sidebar";
 import Media from "./Media";
 import MoveControl from "./MoveControl";
@@ -78,6 +80,7 @@ export default class MegadraftEditor extends Component {
 
     this.setReadOnly = ::this.setReadOnly;
     this.getReadOnly = ::this.getReadOnly;
+    this.getEditorHasFocus = ::this.getEditorHasFocus;
     this.getInitialReadOnly = ::this.getInitialReadOnly;
     this.setInitialReadOnly = ::this.setInitialReadOnly;
 
@@ -319,6 +322,10 @@ export default class MegadraftEditor extends Component {
     return this.state.readOnly;
   }
 
+  getEditorHasFocus() {
+    return this.state.hasFocus;
+  }
+
   getInitialReadOnly() {
     return this.props.readOnly || false;
   }
@@ -462,6 +469,7 @@ export default class MegadraftEditor extends Component {
         getEditorState: this.getEditorState,
         setReadOnly: this.setReadOnly,
         getReadOnly: this.getReadOnly,
+        getEditorHasFocus: this.getEditorHasFocus,
         getInitialReadOnly: this.getInitialReadOnly,
         setInitialReadOnly: this.setInitialReadOnly
       }
@@ -488,7 +496,9 @@ export default class MegadraftEditor extends Component {
   }
 
   renderToolbar(props) {
-    const { Toolbar = DefaultToolbar } = this.props;
+
+    const { Toolbar = (this.props.staticToolbar ? StaticDefaultToolbar : DefaultToolbar) } = this.props;
+
     return <Toolbar {...props} />;
   }
 
@@ -555,6 +565,18 @@ export default class MegadraftEditor extends Component {
               editorHasFocus: this.state.hasFocus,
               hideSidebarOnBlur: hideSidebarOnBlur
             })}
+            {this.renderToolbar({
+              i18n: i18n,
+              editor: this.editorEl,
+              draft: this.draftEl,
+              editorState: this.props.editorState,
+              editorHasFocus: this.state.hasFocus,
+              readOnly: this.state.readOnly,
+              onChange: this.onChange,
+              actions: this.props.actions,
+              entityInputs: this.entityInputs,
+              shouldDisplayToolbarFn: this.props.shouldDisplayToolbarFn
+            })}
             <Editor
               {...this.props}
               ref={el => {
@@ -570,18 +592,6 @@ export default class MegadraftEditor extends Component {
               onChange={this.onChange}
               blockRenderMap={this.extendedBlockRenderMap}
             />
-            {this.renderToolbar({
-              i18n: i18n,
-              editor: this.editorEl,
-              draft: this.draftEl,
-              editorState: this.props.editorState,
-              editorHasFocus: this.state.hasFocus,
-              readOnly: this.state.readOnly,
-              onChange: this.onChange,
-              actions: this.props.actions,
-              entityInputs: this.entityInputs,
-              shouldDisplayToolbarFn: this.props.shouldDisplayToolbarFn
-            })}
           </div>
         </ActionsProvider>
       </div>

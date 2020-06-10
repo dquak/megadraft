@@ -70,6 +70,7 @@ class Example extends React.Component {
           maxSidebarButtons={this.maxSidebarButtons}
           onAction={this.onAction}
           movableBlocks={true}
+          staticToolbar
         />
       </div>
     );
